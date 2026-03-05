@@ -17,7 +17,7 @@ This document records the plan to transform `context-mode` from a Claude Code-sp
 
 The original codebase was tightly coupled to Claude Code via:
 
-1. `CLAUDE_PROJECT_DIR` environment variable — hardcoded assumption about Claude Code's project root injection
+1. `CLAUDE_PROJECT_DIR` environment variable — hardcoded assumption about Claude Code's project root injection → **completely removed**, replaced by `PROJECT_DIR`
 2. `~/.claude/plugins/installed_plugins.json` — Claude Code marketplace plugin registry self-heal code in `start.mjs` and `hooks/pretooluse.mjs`
 3. `~/.claude/settings.json` — Claude Code permission system (security policies)
 4. `.claude-plugin/` — Claude Code marketplace plugin manifest format
@@ -34,13 +34,13 @@ The original codebase was tightly coupled to Claude Code via:
 
 | File | Change |
 |------|--------|
-| `src/server.ts` | Replace `CLAUDE_PROJECT_DIR` with `PROJECT_DIR ?? CLAUDE_PROJECT_DIR` (backward-compatible) |
+| `src/server.ts` | Replace `CLAUDE_PROJECT_DIR` with `PROJECT_DIR` (completely removed) |
 | `src/cli.ts` | Add OpenCode, ZeroClaw, VS Code, LM Studio, Ollama setup options to the `setup` command |
 
 ### 2. Runtime Bootstrap (`start.mjs`)
 
 - **Removed**: Claude plugin registry self-heal code that read/wrote `~/.claude/plugins/installed_plugins.json`
-- **Updated**: Use `PROJECT_DIR` env var (falling back to `CLAUDE_PROJECT_DIR` for backward compat)
+- **Updated**: Use `PROJECT_DIR` env var exclusively (`CLAUDE_PROJECT_DIR` completely removed)
 
 ### 3. Configuration (`.mcp.json`)
 
@@ -66,7 +66,6 @@ The `.claude-plugin/` directory is **retained** for Claude Code marketplace comp
 | Variable | Platform | Description |
 |----------|----------|-------------|
 | `PROJECT_DIR` | All platforms | Project root for security policy resolution |
-| `CLAUDE_PROJECT_DIR` | Claude Code (legacy) | Backward-compatible alias for `PROJECT_DIR` |
 
 ---
 

@@ -29,7 +29,7 @@ const server = new McpServer({
 
 const executor = new PolyglotExecutor({
   runtimes,
-  projectRoot: process.env.PROJECT_DIR ?? process.env.CLAUDE_PROJECT_DIR,
+  projectRoot: process.env.PROJECT_DIR,
 });
 
 // Lazy singleton — no DB overhead unless index/search is used
@@ -84,7 +84,7 @@ function checkDenyPolicy(
   toolName: string,
 ): ToolResult | null {
   try {
-    const policies = readBashPolicies(process.env.PROJECT_DIR ?? process.env.CLAUDE_PROJECT_DIR);
+    const policies = readBashPolicies(process.env.PROJECT_DIR);
     const result = evaluateCommandDenyOnly(command, policies);
     if (result.decision === "deny") {
       return trackResponse(toolName, {
@@ -113,7 +113,7 @@ function checkNonShellDenyPolicy(
   try {
     const commands = extractShellCommands(code, language);
     if (commands.length === 0) return null;
-    const policies = readBashPolicies(process.env.PROJECT_DIR ?? process.env.CLAUDE_PROJECT_DIR);
+    const policies = readBashPolicies(process.env.PROJECT_DIR);
     for (const cmd of commands) {
       const result = evaluateCommandDenyOnly(cmd, policies);
       if (result.decision === "deny") {
@@ -141,7 +141,7 @@ function checkFilePathDenyPolicy(
   toolName: string,
 ): ToolResult | null {
   try {
-    const denyGlobs = readToolDenyPatterns("Read", process.env.PROJECT_DIR ?? process.env.CLAUDE_PROJECT_DIR);
+    const denyGlobs = readToolDenyPatterns("Read", process.env.PROJECT_DIR);
     const result = evaluateFilePath(filePath, denyGlobs);
     if (result.denied) {
       return trackResponse(toolName, {

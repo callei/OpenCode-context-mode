@@ -7,8 +7,8 @@ import { fileURLToPath } from "node:url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 process.chdir(__dirname);
 
-// Set project root env var — prefer PROJECT_DIR, fall back to CLAUDE_PROJECT_DIR (legacy)
-if (!process.env.PROJECT_DIR && !process.env.CLAUDE_PROJECT_DIR) {
+// Set project root env var from the current working directory if not already set
+if (!process.env.PROJECT_DIR) {
   process.env.PROJECT_DIR = process.cwd();
 }
 

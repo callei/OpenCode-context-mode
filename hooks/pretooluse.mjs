@@ -50,9 +50,9 @@ function route() {
     // Stage 1: Security check against user's deny/allow patterns.
     // Only act when an explicit pattern matched. When no pattern matches,
     // evaluateCommand returns { decision: "ask" } with no matchedPattern —
-    // in that case fall through so other hooks and Claude Code's native engine can decide.
+    // in that case fall through so other hooks can decide.
     if (security) {
-      const policies = security.readBashPolicies(process.env.PROJECT_DIR ?? process.env.CLAUDE_PROJECT_DIR);
+      const policies = security.readBashPolicies(process.env.PROJECT_DIR);
       if (policies.length > 0) {
         const result = security.evaluateCommand(command, policies);
         if (result.decision === "deny") {
@@ -164,7 +164,7 @@ function route() {
   if (tool.includes("context-mode") && tool.endsWith("__execute")) {
     if (security && toolInput.language === "shell") {
       const code = toolInput.code ?? "";
-      const policies = security.readBashPolicies(process.env.PROJECT_DIR ?? process.env.CLAUDE_PROJECT_DIR);
+      const policies = security.readBashPolicies(process.env.PROJECT_DIR);
       if (policies.length > 0) {
         const result = security.evaluateCommand(code, policies);
         if (result.decision === "deny") {
@@ -194,7 +194,7 @@ function route() {
     if (security) {
       // Check file path against Read deny patterns
       const filePath = toolInput.path ?? "";
-      const denyGlobs = security.readToolDenyPatterns("Read", process.env.PROJECT_DIR ?? process.env.CLAUDE_PROJECT_DIR);
+      const denyGlobs = security.readToolDenyPatterns("Read", process.env.PROJECT_DIR);
       const evalResult = security.evaluateFilePath(filePath, denyGlobs);
       if (evalResult.denied) {
         return {
@@ -210,7 +210,7 @@ function route() {
       const lang = toolInput.language ?? "";
       const code = toolInput.code ?? "";
       if (lang === "shell") {
-        const policies = security.readBashPolicies(process.env.PROJECT_DIR ?? process.env.CLAUDE_PROJECT_DIR);
+        const policies = security.readBashPolicies(process.env.PROJECT_DIR);
         if (policies.length > 0) {
           const result = security.evaluateCommand(code, policies);
           if (result.decision === "deny") {
@@ -240,7 +240,7 @@ function route() {
   if (tool.includes("context-mode") && tool.endsWith("__batch_execute")) {
     if (security) {
       const commands = toolInput.commands ?? [];
-      const policies = security.readBashPolicies(process.env.PROJECT_DIR ?? process.env.CLAUDE_PROJECT_DIR);
+      const policies = security.readBashPolicies(process.env.PROJECT_DIR);
       if (policies.length > 0) {
         for (const entry of commands) {
           const cmd = entry.command ?? "";

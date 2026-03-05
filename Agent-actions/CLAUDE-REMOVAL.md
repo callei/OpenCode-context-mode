@@ -29,7 +29,7 @@ The self-heal was a workaround for a Claude Code marketplace caching quirk. With
 
 ---
 
-## Changed: `CLAUDE_PROJECT_DIR` → `PROJECT_DIR`
+## Changed: `CLAUDE_PROJECT_DIR` → `PROJECT_DIR` (completely removed)
 
 ### What it was
 
@@ -39,18 +39,13 @@ The server read `process.env.CLAUDE_PROJECT_DIR` to find the project root for:
 
 ### What changed
 
-All three call sites in `src/server.ts` now read:
-
-```ts
-process.env.PROJECT_DIR ?? process.env.CLAUDE_PROJECT_DIR
-```
-
-`CLAUDE_PROJECT_DIR` is retained as a **backward-compatible fallback** so existing Claude Code users are not broken.
+`CLAUDE_PROJECT_DIR` has been **completely removed**. All call sites now read only `process.env.PROJECT_DIR`.
 
 ### Files affected
 
 - `src/server.ts` — lines 32, 87, 116, 144
-- `start.mjs` — env var default changed to `PROJECT_DIR`
+- `hooks/pretooluse.mjs` — 5 call sites
+- `start.mjs` — env var default uses `PROJECT_DIR` only
 
 ---
 

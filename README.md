@@ -155,7 +155,7 @@ Or as a plugin:
 
 The original `mksglu/claude-context-mode` was tightly coupled to Claude Code. This fork removes those assumptions:
 
-- **`PROJECT_DIR`** replaces `CLAUDE_PROJECT_DIR` as the primary env var (Claude fallback retained)
+- **`PROJECT_DIR`** is the single env var for project root (no Claude-specific variable)
 - **`start.mjs`** no longer reads or writes Claude Code's plugin registry
 - **`.mcp.json`** uses `npx -y context-mode` instead of a Claude Code plugin variable
 - **`context-mode setup`** now offers OpenCode, ZeroClaw, VS Code, LM Studio, and OpenWebUI options
@@ -281,7 +281,6 @@ The pattern is `Tool(what to match)` where `*` means "anything". Rules are check
 | Variable | Platform | Description |
 |----------|----------|-------------|
 | `PROJECT_DIR` | All platforms | Project root for security policy resolution |
-| `CLAUDE_PROJECT_DIR` | Claude Code (legacy) | Backward-compatible alias for `PROJECT_DIR` |
 
 ## Requirements
 
