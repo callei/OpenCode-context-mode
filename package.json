@@ -9,6 +9,7 @@
     "mcp",
     "model-context-protocol",
     "opencode",
+    "zeroclaw",
     "vscode",
     "lm-studio",
     "ollama",
@@ -21,10 +22,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/mksglu/claude-context-mode"
+    "url": "https://github.com/callei/OpenCode-context-mode"
   },
-  "homepage": "https://github.com/mksglu/claude-context-mode#readme",
-  "bugs": "https://github.com/mksglu/claude-context-mode/issues",
+  "homepage": "https://github.com/callei/OpenCode-context-mode#readme",
+  "bugs": "https://github.com/callei/OpenCode-context-mode/issues",
   "bin": {
     "context-mode": "./build/cli.js"
   },

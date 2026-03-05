@@ -84,50 +84,6 @@ async function fetchLatestVersion(): Promise<string> {
   }
 }
 
-function getMarketplaceVersion(): string {
-  // Primary: read from installed_plugins.json (source of truth for Claude Code)
-  try {
-    const ipPath = resolve(homedir(), ".claude", "plugins", "installed_plugins.json");
-    const ipRaw = JSON.parse(readFileSync(ipPath, "utf-8"));
-    const plugins = ipRaw.plugins ?? {};
-    for (const [key, entries] of Object.entries(plugins)) {
-      if (!key.toLowerCase().includes("context-mode")) continue;
-      const arr = entries as Array<Record<string, unknown>>;
-      if (arr.length > 0 && typeof arr[0].version === "string") {
-        return arr[0].version;
-      }
-    }
-  } catch { /* fallback below */ }
-
-  // Fallback: read from own package.json
-  const localVer = getLocalVersion();
-  if (localVer !== "unknown") return localVer;
-
-  // Last resort: scan common plugin cache locations
-  const bases = [
-    resolve(homedir(), ".claude"),
-    resolve(homedir(), ".config", "claude"),
-  ];
-  for (const base of bases) {
-    const cacheDir = resolve(base, "plugins", "cache", "claude-context-mode", "context-mode");
-    try {
-      const entries = readdirSync(cacheDir);
-      const versions = entries
-        .filter((e) => /^\d+\.\d+\.\d+/.test(e))
-        .sort((a, b) => {
-          const pa = a.split(".").map(Number);
-          const pb = b.split(".").map(Number);
-          for (let i = 0; i < 3; i++) {
-            if ((pa[i] ?? 0) !== (pb[i] ?? 0)) return (pa[i] ?? 0) - (pb[i] ?? 0);
-          }
-          return 0;
-        });
-      if (versions.length > 0) return versions[versions.length - 1];
-    } catch { /* continue */ }
-  }
-  return "not installed";
-}
-
 function semverGt(a: string, b: string): boolean {
   const pa = a.split(".").map(Number);
   const pb = b.split(".").map(Number);
@@ -160,7 +116,7 @@ async function doctor(): Promise<number> {
   } catch {
     s.stop("Diagnostics partial");
     p.log.warn(color.yellow("Could not detect runtimes") + color.dim(" — module may be missing, restart session after upgrade"));
-    p.outro(color.yellow("Doctor could not fully run — try again after restarting Claude Code"));
+    p.outro(color.yellow("Doctor could not fully run — try again after restarting your MCP client"));
     return 1;
   }
 
@@ -363,7 +319,6 @@ async function doctor(): Promise<number> {
   p.log.step("Checking versions...");
   const localVersion = getLocalVersion();
   const latestVersion = await fetchLatestVersion();
-  const marketplaceVersion = getMarketplaceVersion();
 
   // npm / MCP version
   if (latestVersion === "unknown") {
@@ -380,31 +335,7 @@ async function doctor(): Promise<number> {
     p.log.warn(
       color.yellow("npm (MCP): WARN") +
         ` — local v${localVersion}, latest v${latestVersion}` +
-        color.dim("\n  Run: /context-mode:upgrade"),
-    );
-  }
-
-  // Marketplace version
-  if (marketplaceVersion === "not installed") {
-    p.log.info(
-      color.dim("Marketplace: not installed") +
-        " — using standalone MCP mode",
-    );
-  } else if (latestVersion !== "unknown" && marketplaceVersion === latestVersion) {
-    p.log.success(
-      color.green("Marketplace: PASS") +
-        ` — v${marketplaceVersion}`,
-    );
-  } else if (latestVersion !== "unknown") {
-    p.log.warn(
-      color.yellow("Marketplace: WARN") +
-        ` — v${marketplaceVersion}, latest v${latestVersion}` +
-        color.dim("\n  Run: /context-mode:upgrade"),
-    );
-  } else {
-    p.log.info(
-      `Marketplace: v${marketplaceVersion}` +
-        color.dim(" — could not verify against npm registry"),
+        color.dim("\n  Run: npx context-mode upgrade"),
     );
   }
 
@@ -443,10 +374,10 @@ async function upgrade() {
   const localVersion = getLocalVersion();
   const tmpDir = `/tmp/context-mode-upgrade-${Date.now()}`;
 
-  s.start("Cloning mksglu/claude-context-mode");
+  s.start("Cloning callei/OpenCode-context-mode");
   try {
     execSync(
-      `git clone --depth 1 https://github.com/mksglu/claude-context-mode.git "${tmpDir}"`,
+      `git clone --depth 1 https://github.com/callei/OpenCode-context-mode.git "${tmpDir}"`,
       { stdio: "pipe", timeout: 30000 },
     );
     s.stop("Downloaded");
@@ -514,22 +445,6 @@ async function upgrade() {
       } catch { /* some files may not exist in source */ }
     }
     s.stop(color.green(`Updated in-place to v${newVersion}`));
-
-    // Fix registry to point back to this pluginRoot (self-heal may have changed it)
-    try {
-      const ipPath = resolve(homedir(), ".claude", "plugins", "installed_plugins.json");
-      const ipRaw = JSON.parse(readFileSync(ipPath, "utf-8"));
-      for (const [key, entries] of Object.entries(ipRaw.plugins || {})) {
-        if (!key.toLowerCase().includes("context-mode")) continue;
-        for (const entry of (entries as Array<Record<string, unknown>>)) {
-          entry.installPath = pluginRoot;
-          entry.version = newVersion;
-          entry.lastUpdated = new Date().toISOString();
-        }
-      }
-      writeFileSync(ipPath, JSON.stringify(ipRaw, null, 2) + "\n", "utf-8");
-      p.log.info(color.dim("  Registry synced to " + pluginRoot));
-    } catch { /* best effort */ }
 
     // Install production deps (rebuild native modules if needed)
     s.start("Installing production dependencies");
@@ -718,7 +633,7 @@ async function upgrade() {
   } catch {
     p.log.warn(
       color.yellow("Doctor had warnings") +
-        color.dim(" — restart your Claude Code session to pick up the new version"),
+        color.dim(" — restart your MCP client session to pick up the new version"),
     );
   }
 }
@@ -834,6 +749,11 @@ async function setup() {
         hint: "~/.config/opencode/opencode.json",
       },
       {
+        value: "zeroclaw",
+        label: "ZeroClaw",
+        hint: "~/.config/zeroclaw/config.toml",
+      },
+      {
         value: "vscode",
         label: "VS Code / Cursor / Continue",
         hint: ".vscode/mcp.json",
@@ -885,6 +805,22 @@ async function setup() {
         2,
       ),
       "Add to ~/.config/opencode/opencode.json",
+    );
+  } else if (installMethod === "zeroclaw") {
+    p.note(
+      [
+        "Add to ~/.config/zeroclaw/config.toml:",
+        "",
+        '[mcp.servers.context-mode]',
+        'command = "npx"',
+        'args = ["-y", "context-mode"]',
+        "",
+        "To set a project directory (optional):",
+        "",
+        '[mcp.servers.context-mode.env]',
+        'PROJECT_DIR = "/path/to/your/project"',
+      ].join("\n"),
+      "Add to ~/.config/zeroclaw/config.toml",
     );
   } else if (installMethod === "vscode") {
     p.note(

@@ -1,64 +1,176 @@
-# Context Mode
+# Context Mode — Multi-Platform Fork
 
-**The other half of the context problem.**
+**The other half of the context problem. Now works everywhere.**
 
-[![users](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fcdn.jsdelivr.net%2Fgh%2Fmksglu%2Fclaude-context-mode%40main%2Fstats.json&query=%24.message&label=users&color=brightgreen)](https://www.npmjs.com/package/context-mode) [![npm](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fcdn.jsdelivr.net%2Fgh%2Fmksglu%2Fclaude-context-mode%40main%2Fstats.json&query=%24.npm&label=npm&color=blue)](https://www.npmjs.com/package/context-mode) [![marketplace](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fcdn.jsdelivr.net%2Fgh%2Fmksglu%2Fclaude-context-mode%40main%2Fstats.json&query=%24.marketplace&label=marketplace&color=blue)](https://github.com/mksglu/claude-context-mode) [![GitHub stars](https://img.shields.io/github/stars/mksglu/claude-context-mode?style=flat&color=yellow)](https://github.com/mksglu/claude-context-mode/stargazers) [![GitHub forks](https://img.shields.io/github/forks/mksglu/claude-context-mode?style=flat&color=blue)](https://github.com/mksglu/claude-context-mode/network/members) [![Last commit](https://img.shields.io/github/last-commit/mksglu/claude-context-mode?color=green)](https://github.com/mksglu/claude-context-mode/commits) [![License: ELv2](https://img.shields.io/badge/License-ELv2-blue.svg)](LICENSE)
+[![License: ELv2](https://img.shields.io/badge/License-ELv2-blue.svg)](LICENSE)
 
-Every MCP tool call in Claude Code dumps raw data into your 200K context window. A Playwright snapshot costs 56 KB. Twenty GitHub issues cost 59 KB. One access log — 45 KB. After 30 minutes, 40% of your context is gone.
+> **This is a fork of [mksglu/claude-context-mode](https://github.com/mksglu/claude-context-mode)**, extended to work with multiple LLM providers and AI coding tools — not just Claude Code.
 
-Inspired by Cloudflare's [Code Mode](https://blog.cloudflare.com/code-mode-mcp/) — which compresses tool definitions from millions of tokens into ~1,000 — we asked: what about the other direction?
+Every MCP tool call dumps raw data into your context window. A Playwright snapshot costs 56 KB. Twenty GitHub issues cost 59 KB. One access log — 45 KB. After 30 minutes, 40% of your context is gone.
 
-Context Mode is an MCP server that sits between Claude Code and these outputs. **315 KB becomes 5.4 KB. 98% reduction.**
+Context Mode is an MCP server that sits between your AI assistant and these outputs. **315 KB becomes 5.4 KB. 98% reduction.**
 
-https://github.com/user-attachments/assets/07013dbf-07c0-4ef1-974a-33ea1207637b
+---
+
+## Supported Platforms
+
+| Platform | Type | Status |
+|----------|------|--------|
+| **OpenCode** | Terminal AI coding assistant | ✅ Supported |
+| **ZeroClaw** | Rust-based terminal AI coding assistant | ✅ Supported |
+| **VS Code** (GitHub Copilot Chat, Cursor, Continue) | Editor extension | ✅ Supported |
+| **LM Studio** | Local model runner | ✅ Supported |
+| **Ollama + OpenWebUI** | Local inference + web UI | ✅ Supported |
+| **Claude Code** | Anthropic's coding assistant | ✅ Supported (backward-compatible) |
+
+---
 
 ## Install
+
+### Quick start (any platform)
+
+```bash
+npx -y context-mode
+```
+
+Or install globally:
+
+```bash
+npm install -g context-mode
+```
+
+Then run `context-mode setup` to configure your platform interactively.
+
+---
+
+### OpenCode
+
+Add to `~/.config/opencode/opencode.json`:
+
+```json
+{
+  "mcp": {
+    "context-mode": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "context-mode"]
+    }
+  }
+}
+```
+
+See the full guide: [Agent-actions/OPENCODE-SETUP.md](Agent-actions/OPENCODE-SETUP.md)
+
+---
+
+### ZeroClaw
+
+Add to `~/.config/zeroclaw/config.toml`:
+
+```toml
+[mcp.servers.context-mode]
+command = "npx"
+args = ["-y", "context-mode"]
+```
+
+See the full guide: [Agent-actions/ZEROCLAW-SETUP.md](Agent-actions/ZEROCLAW-SETUP.md)
+
+---
+
+### VS Code / Cursor / Continue
+
+Create `.vscode/mcp.json` in your project:
+
+```json
+{
+  "servers": {
+    "context-mode": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "context-mode"],
+      "env": { "PROJECT_DIR": "${workspaceFolder}" }
+    }
+  }
+}
+```
+
+See the full guide: [Agent-actions/VSCODE-SETUP.md](Agent-actions/VSCODE-SETUP.md)
+
+---
+
+### LM Studio
+
+Edit `~/.lmstudio/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "context-mode": {
+      "command": "npx",
+      "args": ["-y", "context-mode"]
+    }
+  }
+}
+```
+
+See the full guide: [Agent-actions/LM-STUDIO-SETUP.md](Agent-actions/LM-STUDIO-SETUP.md)
+
+---
+
+### Ollama + OpenWebUI
+
+Edit `config/mcp.json` in your OpenWebUI data directory:
+
+```json
+{
+  "mcpServers": {
+    "context-mode": {
+      "command": "npx",
+      "args": ["-y", "context-mode"]
+    }
+  }
+}
+```
+
+See the full guide: [Agent-actions/OPENWEBUI-SETUP.md](Agent-actions/OPENWEBUI-SETUP.md)
+
+---
+
+### Claude Code (legacy)
+
+```bash
+claude mcp add context-mode -- npx -y context-mode
+```
+
+Or as a plugin:
 
 ```bash
 /plugin marketplace add mksglu/claude-context-mode
 /plugin install context-mode@claude-context-mode
 ```
 
-Restart Claude Code. Done. This installs the MCP server + a PreToolUse hook that automatically routes tool outputs through the sandbox + slash commands for diagnostics and upgrades.
+---
 
-| Command | What it does |
-|---|---|
-| `/context-mode:stats` | Show context savings for the current session — per-tool breakdown, tokens consumed, savings ratio. |
-| `/context-mode:doctor` | Run diagnostics — checks runtimes, hooks, FTS5, plugin registration, npm and marketplace versions. |
-| `/context-mode:upgrade` | Pull latest from GitHub, rebuild, migrate cache, fix hooks. |
+## What's Different in This Fork
 
-<details>
-<summary><strong>MCP-only install</strong> (no hooks or slash commands)</summary>
+The original `mksglu/claude-context-mode` was tightly coupled to Claude Code. This fork removes those assumptions:
 
-```bash
-claude mcp add context-mode -- npx -y context-mode
-```
+- **`PROJECT_DIR`** is the single env var for project root (no Claude-specific variable)
+- **`start.mjs`** no longer reads or writes Claude Code's plugin registry
+- **`.mcp.json`** uses `npx -y context-mode` instead of a Claude Code plugin variable
+- **`context-mode setup`** now offers OpenCode, ZeroClaw, VS Code, LM Studio, and OpenWebUI options
+- **Package keywords** reflect the expanded platform support
 
-</details>
+See [Agent-actions/PLAN.md](Agent-actions/PLAN.md) for the full migration log.
 
-<details>
-<summary><strong>Local development</strong></summary>
-
-```bash
-claude --plugin-dir ./path/to/context-mode
-```
-
-</details>
-
-## The Problem
-
-MCP has become the standard way for AI agents to use external tools. But there is a tension at its core: every tool interaction fills the context window from both sides — definitions on the way in, raw output on the way out.
-
-With [81+ tools active, 143K tokens (72%) get consumed before your first message](https://scottspence.com/posts/optimising-mcp-server-context-usage-in-claude-code). And then the tools start returning data. A single Playwright snapshot burns 56 KB. A `gh issue list` dumps 59 KB. Run a test suite, read a log file, fetch documentation — each response eats into what remains.
-
-Code Mode showed that tool definitions can be compressed by 99.9%. Context Mode applies the same principle to tool outputs — processing them in sandboxes so only summaries reach the model.
+---
 
 ## Tools
 
 | Tool | What it does | Context saved |
 |---|---|---|
 | `batch_execute` | Run multiple commands + search multiple queries in ONE call. | 986 KB → 62 KB |
-| `execute` | Run code in 10 languages. Only stdout enters context. | 56 KB → 299 B |
+| `execute` | Run code in 11 languages. Only stdout enters context. | 56 KB → 299 B |
 | `execute_file` | Process files in sandbox. Raw content never leaves. | 45 KB → 155 B |
 | `index` | Chunk markdown into FTS5 with BM25 ranking. | 60 KB → 40 B |
 | `search` | Query indexed content with multiple queries in one call. | On-demand retrieval |
@@ -106,7 +218,7 @@ This encourages batching queries via `search(queries: ["q1", "q2", "q3"])` or `b
 
 ## Session Stats
 
-The `stats` tool tracks context consumption in real-time. Network I/O inside the sandbox is automatically tracked for JS/TS executions.
+The `stats` tool tracks context consumption in real-time.
 
 | Metric | Value |
 |---|---|
@@ -117,19 +229,6 @@ The `stats` tool tracks context consumption in real-time. Network I/O inside the
 | Entered context | 0.3KB |
 | Tokens consumed | ~82 |
 | **Context savings** | **24,576.0x (99% reduction)** |
-
-| Tool | Calls | Context | Tokens |
-|---|---|---|---|
-| execute | 1 | 0.3KB | ~82 |
-| **Total** | **1** | **0.3KB** | **~82** |
-
-> Without context-mode, **9.6MB** of raw tool output would flood your context window. Instead, **9.6MB** (99%) stayed in sandbox — saving **~2,457,600 tokens** of context space.
-
-## Subagent Routing
-
-When installed as a plugin, Context Mode includes a PreToolUse hook that automatically injects routing instructions into subagent (Task tool) prompts. Subagents learn to use `batch_execute` as their primary tool and `search(queries: [...])` for follow-ups — without any manual configuration.
-
-Bash subagents are automatically upgraded to `general-purpose` so they can access MCP tools. Without this, a `subagent_type: "Bash"` agent only has the Bash tool — it can't call `batch_execute` or `search`, and all raw output floods context.
 
 ## The Numbers
 
@@ -144,65 +243,19 @@ Measured across real-world scenarios:
 **Test output (30 suites)** — 6.0 KB raw → 337 B context (95% saved)
 **Repo research (subagent)** — 986 KB raw → 62 KB context (94% saved, 5 calls vs 37)
 
-Over a full session: 315 KB of raw output becomes 5.4 KB. Session time before slowdown goes from ~30 minutes to ~3 hours. Context remaining after 45 minutes: 99% instead of 60%.
+Over a full session: 315 KB of raw output becomes 5.4 KB.
 
 [Full benchmark data with 21 scenarios →](BENCHMARK.md)
 
-## Try It
-
-These prompts work out of the box. Run `/context-mode:stats` after each to see the savings.
-
-**Deep repo research** — 5 calls, 62 KB context (raw: 986 KB, 94% saved)
-```
-Research https://github.com/modelcontextprotocol/servers — architecture, tech stack,
-top contributors, open issues, and recent activity. Then run /context-mode:stats.
-```
-
-**Git history analysis** — 1 call, 5.6 KB context
-```
-Clone https://github.com/facebook/react and analyze the last 500 commits:
-top contributors, commit frequency by month, and most changed files.
-Then run /context-mode:stats.
-```
-
-**Web scraping** — 1 call, 3.2 KB context
-```
-Fetch the Hacker News front page, extract all posts with titles, scores,
-and domains. Group by domain. Then run /context-mode:stats.
-```
-
-**Large JSON API** — 7.5 MB raw → 0.9 KB context (99% saved)
-```
-Create a local server that returns a 7.5 MB JSON with 20,000 records and a secret
-hidden at index 13000. Fetch the endpoint, find the hidden record, and show me
-exactly what's in it. Then run /context-mode:stats.
-```
-
-**Documentation search** — 2 calls, 1.8 KB context
-```
-Fetch the React useEffect docs, index them, and find the cleanup pattern
-with code examples. Then run /context-mode:stats.
-```
-
 ## Security
 
-Context Mode enforces the same permission rules you already use in Claude Code — but extends them to the MCP sandbox. If you block `sudo` in Claude Code, it's also blocked inside `execute`, `execute_file`, and `batch_execute`.
+Context Mode enforces permission rules using the same format as Claude Code's `settings.json` — but the security layer works on any platform. If you block `sudo`, it's also blocked inside `execute`, `execute_file`, and `batch_execute`.
 
-**Zero setup required.** If you haven't configured any permissions, nothing changes. This only activates when you add rules.
+**Zero setup required.** If you haven't configured any permissions, all commands are permitted. This only activates when you add rules.
 
-### Getting started
+### Rule format
 
-Find your settings file:
-
-```bash
-# macOS / Linux
-cat ~/.claude/settings.json
-
-# Windows
-type %USERPROFILE%\.claude\settings.json
-```
-
-Add a `permissions` section (keep your existing settings, just add this block). Then restart Claude Code.
+Create `.claude/settings.json` in your project root (or `~/.claude/settings.json` globally):
 
 ```json
 {
@@ -221,120 +274,31 @@ Add a `permissions` section (keep your existing settings, just add this block). 
 }
 ```
 
-The pattern is `Tool(what to match)` where `*` means "anything".
+The pattern is `Tool(what to match)` where `*` means "anything". Rules are checked in order: project-local → project-shared → global. `deny` always wins over `allow`.
 
-<details>
-<summary><strong>Common deny patterns</strong> (click to expand)</summary>
+## Environment Variables
 
-**Dangerous commands:**
-```
-"Bash(sudo *)"              — block all sudo commands
-"Bash(rm -rf /*)"           — block recursive delete from root
-"Bash(chmod 777 *)"         — block open permissions
-"Bash(shutdown *)"          — block shutdown/reboot
-"Bash(kill -9 *)"           — block force kill
-"Bash(mkfs *)"              — block filesystem format
-"Bash(dd *)"                — block disk write
-```
-
-**Network access:**
-```
-"Bash(curl *)"              — block curl
-"Bash(wget *)"              — block wget
-"Bash(ssh *)"               — block ssh connections
-"Bash(scp *)"               — block secure copy
-"Bash(nc *)"                — block netcat
-```
-
-**Package managers and deploys:**
-```
-"Bash(npm publish *)"       — block npm publish
-"Bash(docker push *)"       — block docker push
-"Bash(pip install *)"       — block pip install
-"Bash(brew install *)"      — block brew install
-"Bash(apt install *)"       — block apt install
-"Bash(wrangler deploy *)"   — block Cloudflare deploys
-"Bash(terraform apply *)"   — block terraform apply
-"Bash(kubectl delete *)"    — block k8s delete
-```
-
-**Sensitive files:**
-```
-"Read(.env)"                — block .env in project root
-"Read(**/.env*)"            — block .env files everywhere
-"Read(**/*secret*)"         — block files with "secret" in the name
-"Read(**/*credential*)"     — block credential files
-"Read(**/*.pem)"            — block private keys
-"Read(**/*id_rsa*)"         — block SSH keys
-```
-
-</details>
-
-<details>
-<summary><strong>Common allow patterns</strong> (click to expand)</summary>
-
-```
-"Bash(git:*)"               — allow git (with or without args)
-"Bash(npm:*)"               — allow npm
-"Bash(npx:*)"               — allow npx
-"Bash(node:*)"              — allow node
-"Bash(python:*)"            — allow python
-"Bash(ls:*)"                — allow ls
-"Bash(cat:*)"               — allow cat
-"Bash(echo:*)"              — allow echo
-"Bash(grep:*)"              — allow grep
-"Bash(make:*)"              — allow make
-```
-
-</details>
-
-### Chained commands
-
-Commands chained with `&&`, `;`, or `|` are split — each part is checked separately:
-
-```
-echo hello && sudo rm -rf /tmp
-```
-
-Blocked. Even though it starts with `echo`, the `sudo` part matches the deny rule.
-
-### Where to put rules
-
-Rules can go in three places (checked in this order):
-
-1. `.claude/settings.local.json` — this project only (gitignored)
-2. `.claude/settings.json` — this project, shared with team
-3. `~/.claude/settings.json` — all projects
-
-**deny** always wins over **allow**. More specific (project-level) rules override global ones.
+| Variable | Platform | Description |
+|----------|----------|-------------|
+| `PROJECT_DIR` | All platforms | Project root for security policy resolution |
 
 ## Requirements
 
 - **Node.js 18+**
-- **Claude Code** with MCP support
-- Optional: Bun (auto-detected, 3-5x faster JS/TS)
+- Optional: **Bun** (auto-detected, 3-5× faster JS/TS)
 
 ## Contributing
 
-We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for the full local development workflow, TDD guidelines, and how to test your changes in a live Claude Code session.
-
 ```bash
-git clone https://github.com/mksglu/claude-context-mode.git
-cd claude-context-mode && npm install
+git clone https://github.com/callei/OpenCode-context-mode.git
+cd OpenCode-context-mode && npm install
 npm test              # run tests
 npm run test:all      # full suite
 ```
 
-## Contributors
-
-<a href="https://github.com/mksglu/claude-context-mode/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=mksglu/claude-context-mode&columns=8&anon=1" />
-</a>
-
-### Special Thanks
-
-<a href="https://github.com/mksglu/claude-context-mode/issues/15"><img src="https://github.com/vaban-ru.png" width="32" /></a>
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full local development workflow.
 
 ## License
 
 [Elastic License 2.0 (ELv2)](LICENSE) — free to use, modify, and share. You may not rebrand and redistribute this software as a competing plugin, product, or managed service.
+

@@ -2,7 +2,7 @@
  * Hook Integration Tests -- pretooluse.mjs
  *
  * Directly invokes the pretooluse.mjs hook script by piping simulated
- * JSON stdin (the same JSON that Claude Code sends) and asserts correct output.
+ * JSON stdin and asserts correct output.
  */
 
 import { strict as assert } from "node:assert";
@@ -355,7 +355,7 @@ async function main() {
     }),
   );
 
-  const secEnv = { HOME: ISOLATED_HOME, CLAUDE_PROJECT_DIR: MOCK_PROJECT_DIR };
+  const secEnv = { HOME: ISOLATED_HOME, PROJECT_DIR: MOCK_PROJECT_DIR };
 
   await test("Security: Bash + sudo denied by deny pattern", () => {
     const result = runHook(
