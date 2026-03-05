@@ -1,13 +1,13 @@
 {
   "name": "context-mode",
   "version": "0.9.20",
-  "description": "Claude Code MCP plugin that saves 98% of your context window. Sandboxed code execution in 11 languages, FTS5 knowledge base with BM25 ranking, and intent-driven search.",
+  "description": "MCP server that saves 98% of your context window. Works with OpenCode, ZeroClaw, VS Code, LM Studio, Ollama+OpenWebUI, and Claude Code. Sandboxed code execution in 11 languages, FTS5 knowledge base with BM25 ranking, and intent-driven search.",
   "author": {
     "name": "Mert Koseoğlu",
     "url": "https://github.com/mksglu"
   },
-  "homepage": "https://github.com/mksglu/claude-context-mode#readme",
-  "repository": "https://github.com/mksglu/claude-context-mode",
+  "homepage": "https://github.com/callei/OpenCode-context-mode#readme",
+  "repository": "https://github.com/callei/OpenCode-context-mode",
   "license": "Elastic-2.0",
   "keywords": [
     "mcp",
@@ -16,8 +16,8 @@
     "code-execution",
     "fts5",
     "bm25",
-    "playwright",
-    "context7"
+    "opencode",
+    "zeroclaw"
   ],
   "mcpServers": {
     "context-mode": {
